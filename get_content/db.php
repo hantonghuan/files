@@ -1,6 +1,7 @@
 <?php
 
-define('TABLE', "source");
+define('OID', "'1022:2307454073577451289879'");
+define('TABLE', "articles_201702");
 
 $host = '10.75.18.150';
 $port = '5040';
@@ -11,28 +12,35 @@ $passwd = 'f3u4w8n7b3h';
 
 $pdo = new PDO("mysql:host=$host;port=$port;dbname=$db", $user, $passwd);
 
-$source_id = file('source_id');
-foreach ($source_id as $k => $id) {
-	$source_id[$k] = get_score((int)$id);
-	file_put_contents('score', $source_id[$k]['source']."\n", FILE_APPEND);
+switch($argc)
+{
+case 1:
+	show($pdo);
+	break;
+case 2:
+	if ($argv[1] == 'push_content') {
+		push_content($pdo);
+	}
+	if ($argv[1] == 'pull_content') {
+		pull_content($pdo);
+	}
+
+	break;
+case 3:
+	if($argc == 3) {
+		$column = $argv[1];
+		$value = $argv[2];
+		update_str($pdo, $column, $value);
+	}
+
+	if($argc == 4 && $argv[3] == 'int') {
+		$column = $argv[1];
+		$value = $argv[2];
+		update_int($pdo, $column, $value);
+	}
+	break;
+
 }
-
-function get_score($id) {
-	$sql = "select source, score from " . TABLE . " where source_id=$id";
-	$result = $pdo->query($sql)->fetchAll();
-	return [
-		'id' => $id,
-		'source' => $result[0]['source'],
-		'score' => $result[0]['score']
-	];
-}
-
-
-
-
-
-
-
 
 function update_str($pdo, $column, $value) {
 	$sql = "update " . TABLE  . " set $column=\"$value\" where oid=" . OID;
